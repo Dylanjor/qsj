@@ -138,27 +138,34 @@ export default function App() {
           今日推荐
         </h2>
         
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+        {/* Render recipes list with disabled state when loading */}
+        <div>
+          {recipes.map(recipe => (
+            <RecipeCard 
+              key={recipe.id} 
+              recipe={recipe} 
+              onClick={setSelectedRecipe}
+              disabled={loading} 
+            />
+          ))}
+        </div>
+
+        {/* Loading Indicator at the bottom */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-10 text-gray-400">
             <Loader2 className="w-10 h-10 animate-spin mb-3 text-emerald-500" />
-            <p className="text-sm">AI 大厨正在为您设计菜谱...</p>
+            <p className="text-sm animate-pulse">AI 大厨正在为您设计菜谱...</p>
           </div>
-        ) : (
-          <div>
-            {recipes.map(recipe => (
-              <RecipeCard 
-                key={recipe.id} 
-                recipe={recipe} 
-                onClick={setSelectedRecipe} 
-              />
-            ))}
-             <button 
-              onClick={() => loadRecipes(CATEGORIES.find(c => c.id === activeCategory)?.query || activeCategory, true)}
-              className="w-full py-3 mt-4 text-emerald-600 font-medium bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors"
-            >
-              加载更多食谱
-            </button>
-          </div>
+        )}
+
+        {/* Load More Button - only show when NOT loading and there are recipes */}
+        {!loading && recipes.length > 0 && (
+          <button 
+            onClick={() => loadRecipes(CATEGORIES.find(c => c.id === activeCategory)?.query || activeCategory, true)}
+            className="w-full py-3 mt-4 text-emerald-600 font-medium bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors"
+          >
+            加载更多食谱
+          </button>
         )}
       </div>
     </div>
@@ -166,9 +173,6 @@ export default function App() {
 
   const renderFavorites = () => {
     const favRecipes = recipes.filter(r => favorites.has(r.id));
-    // In a real app, we would fetch specific IDs or persist them. 
-    // Here we just filter currently loaded ones for demo purposes, 
-    // but implies the need for persistence.
     
     return (
       <div className="px-5 py-8 pb-24 min-h-screen">
@@ -209,6 +213,7 @@ export default function App() {
       {loading ? (
           <div className="flex flex-col items-center justify-center py-10">
             <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+            <p className="text-sm text-gray-400 mt-4">AI 正在搜索美味...</p>
           </div>
       ) : (
         recipes.length > 0 && (

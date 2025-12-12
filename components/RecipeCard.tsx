@@ -5,13 +5,18 @@ import { Flame, Clock, ChefHat } from 'lucide-react';
 interface RecipeCardProps {
   recipe: Recipe;
   onClick: (recipe: Recipe) => void;
+  disabled?: boolean;
 }
 
-export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
+export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick, disabled }) => {
   return (
     <div 
-      onClick={() => onClick(recipe)}
-      className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 mb-4 active:scale-95 transition-transform duration-150 cursor-pointer"
+      onClick={() => !disabled && onClick(recipe)}
+      className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 mb-4 transition-all duration-300 ${
+        disabled 
+          ? 'opacity-60 cursor-not-allowed scale-[0.98] grayscale-[0.2]' 
+          : 'active:scale-95 cursor-pointer hover:shadow-md'
+      }`}
     >
       <div className="relative h-48 w-full">
         <img 
