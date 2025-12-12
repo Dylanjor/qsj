@@ -1,29 +1,28 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Recipe } from "../types";
 
 // Initialize Gemini Client
-// Note: API Key is injected via process.env.API_KEY environment variable automatically.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.API_KEY || "");
 
 const RECIPE_SCHEMA = {
-  type: Type.ARRAY,
+  type: "array",
   items: {
-    type: Type.OBJECT,
+    type: "object",
     properties: {
-      title: { type: Type.STRING, description: "食谱名称，例如：'凉拌鸡胸肉丝'" },
-      description: { type: Type.STRING, description: "简短的描述，吸引人且突出健康特点" },
-      calories: { type: Type.INTEGER, description: "每份的大致卡路里" },
-      timeMinutes: { type: Type.INTEGER, description: "烹饪所需分钟数" },
-      difficulty: { type: Type.STRING, enum: ["Easy", "Medium", "Hard"] },
-      tags: { type: Type.ARRAY, items: { type: Type.STRING }, description: "标签，例如：低卡, 高蛋白, 快手" },
-      ingredients: { type: Type.ARRAY, items: { type: Type.STRING }, description: "食材列表，包含用量" },
-      steps: { type: Type.ARRAY, items: { type: Type.STRING }, description: "详细的烹饪步骤" },
+      title: { type: "string", description: "食谱名称，例如：'凉拌鸡胸肉丝'" },
+      description: { type: "string", description: "简短的描述，吸引人且突出健康特点" },
+      calories: { type: "integer", description: "每份的大致卡路里" },
+      timeMinutes: { type: "integer", description: "烹饪所需分钟数" },
+      difficulty: { type: "string", enum: ["Easy", "Medium", "Hard"] },
+      tags: { type: "array", items: { type: "string" }, description: "标签，例如：低卡, 高蛋白, 快手" },
+      ingredients: { type: "array", items: { type: "string" }, description: "食材列表，包含用量" },
+      steps: { type: "array", items: { type: "string" }, description: "详细的烹饪步骤" },
       macros: {
-        type: Type.OBJECT,
+        type: "object",
         properties: {
-          protein: { type: Type.NUMBER },
-          fat: { type: Type.NUMBER },
-          carbs: { type: Type.NUMBER },
+          protein: { type: "number" },
+          fat: { type: "number" },
+          carbs: { type: "number" },
         },
         required: ["protein", "fat", "carbs"]
       }
@@ -45,17 +44,19 @@ export const generateRecipes = async (categoryQuery: string): Promise<Recipe[]> 
       5. 输出结果必须是严格的JSON数组格式。
     `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      generationConfig: {
         responseMimeType: "application/json",
-        responseSchema: RECIPE_SCHEMA,
+        responseJsonSchema: RECIPE_SCHEMA,
         temperature: 0.7,
-      },
+      }
     });
 
-    const text = response.text;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
     if (!text) return [];
 
     const rawRecipes = JSON.parse(text);
